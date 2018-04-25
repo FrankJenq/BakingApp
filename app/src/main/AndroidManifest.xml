@@ -28,6 +28,9 @@
         <activity
             android:name=".StepDetailActivity"
             android:parentActivityName=".StepsActivity" />
+        <activity
+            android:name=".SettingsActivity"
+            android:parentActivityName=".StepsActivity" />
 
         <receiver android:name=".RecipeWidget">
             <intent-filter>

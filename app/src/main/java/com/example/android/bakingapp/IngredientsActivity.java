@@ -24,7 +24,7 @@ public class IngredientsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ingredients);
 
         // 根据菜谱设置标题
-        String recipeName = getString(R.string.ingredients_act_label) + RecipeList.recipes.get(recipeId).getName();
+        String recipeName = getString(R.string.ingredients_act_label) + " " + RecipeList.recipes.get(recipeId).getName();
         setTitle(recipeName);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.ingredients_recycler_view);

@@ -2,11 +2,22 @@
     <string name="app_name">Baking App</string>
     <string name="recipe_act_name">Baking Time</string>
     <string name="ingredients_label">Ingredients</string>
-    <string name="ingredients_act_label">Ingredients of  </string>
+    <string name="ingredients_act_label">Ingredients of</string>
     <string name="step_detail_act_label">Step Detail</string>
     <string name="pre_step">Pre Step</string>
     <string name="next_step">Next Step</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="steps_label">Steps</string>
+    <string name="settings_label">Settings</string>
+    <string name="pref_widget_label_nutella_pie">Nutella Pie</string>
+    <string name="pref_widget_label_brownies">Brownies</string>
+    <string name="pref_widget_label_yellow_cake">Yellow Cake</string>
+    <string name="pref_widget_label_cheesecake">CheeseCake</string>
+    <string name="pref_widget_nutella_pie">Nutella Pie</string>
+    <string name="pref_widget_brownies">Brownies</string>
+    <string name="pref_widget_yellow_cake">Yellow Cake</string>
+    <string name="pref_widget_cheesecake">CheeseCake</string>
+    <string name="pref_widget_key">widget</string>
+    <string name="pref_widget_label">Recipe to show on widget</string>
 </resources>

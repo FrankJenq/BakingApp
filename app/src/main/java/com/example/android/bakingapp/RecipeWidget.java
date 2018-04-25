@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.widget.RemoteViews;
 
 import com.example.android.bakingapp.data.RecipeList;
+import com.example.android.bakingapp.data.WidgetPreference;
 import com.example.android.bakingapp.utils.RecipeImageUtils;
 
 /**
@@ -16,9 +17,24 @@ import com.example.android.bakingapp.utils.RecipeImageUtils;
 public class RecipeWidget extends AppWidgetProvider {
 
     public static int recipeId = 0;
+    public static final String RECIPE= " Recipe";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        switch (WidgetPreference.getPreference(context)) {
+            case WidgetPreference.NUTELLA_PIE:
+                recipeId = WidgetPreference.NUTELLA_PIE;
+                break;
+            case WidgetPreference.BROWNIES:
+                recipeId = WidgetPreference.BROWNIES;
+                break;
+            case WidgetPreference.YELLOW_CAKE:
+                recipeId = WidgetPreference.YELLOW_CAKE;
+            case WidgetPreference.CHEESECAKE:
+                recipeId = WidgetPreference.CHEESECAKE;
+                break;
+        }
+
         // Perform this loop procedure for each App Widget that belongs to this provider
         for (int widgetId : appWidgetIds) {
             Intent intent = new Intent(context, StepsActivity.class);
@@ -28,21 +44,10 @@ public class RecipeWidget extends AppWidgetProvider {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget);
             // Update image and text
             views.setImageViewResource(R.id.recipe_image, RecipeImageUtils.getPlantImgRes(context, recipeId));
-            views.setTextViewText(R.id.recipe_name, RecipeList.recipes.get(recipeId).getName());
+            views.setTextViewText(R.id.recipe_name, RecipeList.recipes.get(recipeId).getName() + RECIPE);
             // Widgets allow click handlers to only launch pending intents
             views.setOnClickPendingIntent(R.id.recipe_image, pendingIntent);
-            // Add the next recipe click handler
-            Intent nextIntent = new Intent(context, RecipeWidget.class);
-            nextIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            nextIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-            nextIntent.putExtra(RecipeListActivity.RecipeId, recipeId);
-            PendingIntent nextRecipePendingIntent = PendingIntent.getBroadcast(context, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            views.setOnClickPendingIntent(R.id.next_recipe_button, nextRecipePendingIntent);
-            if (recipeId < RecipeList.recipes.size() - 1) {
-                recipeId++;
-            } else {
-                recipeId = 0;
-            }
+
             appWidgetManager.updateAppWidget(widgetId, views);
         }
     }
@@ -55,6 +60,14 @@ public class RecipeWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent.hasExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS)) {
+            int[] ids = intent.getExtras().getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+            this.onUpdate(context, AppWidgetManager.getInstance(context), ids);
+        } else super.onReceive(context, intent);
     }
 }
 
