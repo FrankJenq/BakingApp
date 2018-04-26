@@ -3,12 +3,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.example.android.bakingapp.RecipeListActivity">
+
+    <ProgressBar
+        android:id="@+id/indeterminateBar"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:id="@+id/no_internet_connection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/no_network_connection_info"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
     <ListView
         android:id="@+id/recipe_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
     </ListView>
 
+    <TextView
+        android:id="@+id/empty_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/empty_content"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 </LinearLayout>

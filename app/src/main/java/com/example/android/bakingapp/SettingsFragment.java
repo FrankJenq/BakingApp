@@ -42,7 +42,7 @@ public class SettingsFragment extends PreferenceFragment
         onPreferenceChange(preference, preferenceString);
     }
 
-    private void updateWidgets(Context c) {
+    public static void updateWidgets(Context c) {
         AppWidgetManager man = AppWidgetManager.getInstance(c);
         int[] ids = man.getAppWidgetIds(
                 new ComponentName(c,RecipeWidget.class));

@@ -20,4 +20,7 @@
     <string name="pref_widget_cheesecake">CheeseCake</string>
     <string name="pref_widget_key">widget</string>
     <string name="pref_widget_label">Recipe to show on widget</string>
+    <string name="empty_content">No content</string>
+    <string name="no_network_connection_info">No Network Connection</string>
+    <string name="refresh_title">refresh_label</string>
 </resources>

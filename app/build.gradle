@@ -24,6 +24,11 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
 
     compile 'com.google.code.gson:gson:2.8.0'
+    compile 'com.squareup.retrofit2:retrofit:2.0.2'
+    compile 'com.squareup.retrofit2:converter-gson:2.0.2'
+
+    // Okhttp
+    compile 'com.squareup.okhttp3:okhttp:3.7.0'
 
     implementation 'com.google.android.exoplayer:exoplayer:2.6.0'
 

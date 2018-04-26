@@ -17,7 +17,8 @@ import com.example.android.bakingapp.utils.RecipeImageUtils;
 public class RecipeWidget extends AppWidgetProvider {
 
     public static int recipeId = 0;
-    public static final String RECIPE= " Recipe";
+    public static final String RECIPE = " Recipe";
+    private final String NO_RECIPE = "No Recipe";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -37,17 +38,28 @@ public class RecipeWidget extends AppWidgetProvider {
 
         // Perform this loop procedure for each App Widget that belongs to this provider
         for (int widgetId : appWidgetIds) {
-            Intent intent = new Intent(context, StepsActivity.class);
-            intent.putExtra(RecipeListActivity.RecipeId, recipeId);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent intent;
+            PendingIntent pendingIntent;
+            if (RecipeList.recipes != null) {
+                intent = new Intent(context, StepsActivity.class);
+                intent.putExtra(RecipeListActivity.RecipeId, recipeId);
+                pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            } else {
+                intent = new Intent(context,RecipeListActivity.class);
+                pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            }
+
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget);
             // Update image and text
             views.setImageViewResource(R.id.recipe_image, RecipeImageUtils.getPlantImgRes(context, recipeId));
-            views.setTextViewText(R.id.recipe_name, RecipeList.recipes.get(recipeId).getName() + RECIPE);
+            if (RecipeList.recipes != null) {
+                views.setTextViewText(R.id.recipe_name, RecipeList.recipes.get(recipeId).getName() + RECIPE);
+            } else {
+                views.setTextViewText(R.id.recipe_name, NO_RECIPE);
+            }
             // Widgets allow click handlers to only launch pending intents
             views.setOnClickPendingIntent(R.id.recipe_image, pendingIntent);
-
             appWidgetManager.updateAppWidget(widgetId, views);
         }
     }

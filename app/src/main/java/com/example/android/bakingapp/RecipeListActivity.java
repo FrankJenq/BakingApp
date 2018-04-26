@@ -1,31 +1,33 @@
 package com.example.android.bakingapp;
 
-import android.content.Context;
+import android.app.LoaderManager;
 import android.content.Intent;
+import android.content.Loader;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.android.bakingapp.data.Recipe;
-import com.example.android.bakingapp.data.RecipeList;
-import com.example.android.bakingapp.data.Results;
-import com.google.gson.Gson;
+import com.example.android.bakingapp.utils.NetworkUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-public class RecipeListActivity extends AppCompatActivity {
+public class RecipeListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Recipe>> {
 
     ListView mRecipeListView;
+    RecipeAdapter mRecipeAdapter;
+    View emptyContentView;
+    View noInternetConnectionView;
+    ProgressBar progressBar;
+    LoaderManager loaderManager;
     public static final String RecipeId = "recipe_id";
 
     @Override
@@ -33,65 +35,48 @@ public class RecipeListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_list);
         mRecipeListView = findViewById(R.id.recipe_list);
-        RecipeList.recipes=getRecipes(this);
-        RecipeAdapter recipeAdapter = new RecipeAdapter(this, RecipeList.recipes);
-        mRecipeListView.setAdapter(recipeAdapter);
 
+        // 无网络或无内容的empty view
+        emptyContentView = findViewById(R.id.empty_content);
+        noInternetConnectionView = findViewById(R.id.no_internet_connection);
+        progressBar = findViewById(R.id.indeterminateBar);
+        mRecipeListView.setEmptyView(emptyContentView);
+
+        mRecipeAdapter = new RecipeAdapter(this, new ArrayList<Recipe>());
+        loaderManager = getLoaderManager();
+        loaderManager.initLoader(0, null, this);
+    }
+
+    @Override
+    public Loader<List<Recipe>> onCreateLoader(int i, Bundle bundle) {
+        return new RecipeLoader(this);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Recipe>> loader, List<Recipe> recipes) {
+        mRecipeAdapter.clear();
         mRecipeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(RecipeListActivity.this,StepsActivity.class);
-                intent.putExtra(RecipeId,(int)id);
+                Intent intent = new Intent(RecipeListActivity.this, StepsActivity.class);
+                intent.putExtra(RecipeId, (int) id);
                 startActivity(intent);
             }
         });
-    }
-
-    private class RecipeAdapter extends ArrayAdapter<Recipe> {
-        public RecipeAdapter(Context c, List<Recipe> recipes) {
-            super(c, 0, recipes);
+        progressBar.setVisibility(View.GONE);
+        if (NetworkUtils.isHttpsConnectionOk(this) || recipes != null) {
+            noInternetConnectionView.setVisibility(View.GONE);
         }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-
-            // Check if the existing view is being reused, otherwise inflate the view
-            View listItemView = convertView;
-            if (listItemView == null) {
-                listItemView = LayoutInflater.from(getContext()).inflate(
-                        R.layout.recipe_list_item, parent, false);
-            }
-
-            // Get the {@link AndroidFlavor} object located at this position in the list
-            Recipe currentRecipe = getItem(position);
-
-            TextView titleTextView = (TextView) listItemView.findViewById(R.id.recipe_name);
-            // Get the earthquakeLocation from the current Book object and
-            // set this text on the earthquakeLocation TextView TextView
-            titleTextView.setText(currentRecipe.getName());
-
-            // Return the whole list item layout
-            // so that it can be shown in the ListView
-            return listItemView;
+        SettingsFragment.updateWidgets(this);
+        mRecipeListView.setAdapter(mRecipeAdapter);
+        if (recipes != null) {
+            mRecipeAdapter.addAll(recipes);
         }
     }
 
-    private List<Recipe> getRecipes(Context context) {
-        String json = null;
-        try {
-            InputStream inputStream = context.getAssets().open("recipes.json");
-            int size = inputStream.available();
-            byte[] buffer = new byte[size];
-            inputStream.read(buffer);
-            inputStream.close();
-            json = new String(buffer, "UTF-8");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Gson gson = new Gson();
-        Results results = gson.fromJson(json, Results.class);
-        return results.getRecipes();
+    @Override
+    public void onLoaderReset(Loader<List<Recipe>> loader) {
+        mRecipeAdapter.clear();
     }
 
     @Override
@@ -106,6 +91,15 @@ public class RecipeListActivity extends AppCompatActivity {
             case R.id.settings:
                 Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
+                return true;
+            case R.id.action_refresh:
+                if (!NetworkUtils.isHttpsConnectionOk(this)) {
+                    Toast.makeText(this, R.string.no_network_connection_info, Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                progressBar.setVisibility(View.VISIBLE);
+                loaderManager.destroyLoader(0);
+                loaderManager.initLoader(0, null, this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
