@@ -3,26 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:layout_margin="@dimen/recipe_margin"
+    android:orientation="vertical"
     tools:context="com.example.android.bakingapp.StepsActivity">
-
-    <TextView
-        android:id="@+id/ingredients_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/ingredients_label"
-        android:padding="@dimen/recipe_margin"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/steps_label"
-        android:padding="@dimen/recipe_margin"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/steps_recycler_view"
