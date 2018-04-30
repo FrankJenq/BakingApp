@@ -196,7 +196,6 @@ public class StepsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     int itemPosition = mRecyclerView.getChildAdapterPosition(v);
-
                     if (mIsPadScreen) {
                         if (itemPosition == 0) {
                             mIngredientsView.setVisibility(View.VISIBLE);
@@ -206,6 +205,8 @@ public class StepsActivity extends AppCompatActivity {
                             releasePlayer();
                             initializeIngredientFragment();
                         } else {
+                            mPlayPosition = 0;
+                            mPlayWhenReady = true;
                             mStepLayout.setVisibility(View.VISIBLE);
                             mIngredientsView.setVisibility(View.GONE);
                             mStepId = itemPosition - 1;

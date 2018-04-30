@@ -107,6 +107,8 @@ public class StepDetailActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     --mStepId;
                     mIsInitialContent = false;
+                    mPlayPosition = 0;
+                    mPlayWhenReady = true;
                     refreshContent();
                 }
             });
@@ -116,6 +118,8 @@ public class StepDetailActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     ++mStepId;
                     mIsInitialContent = false;
+                    mPlayPosition = 0;
+                    mPlayWhenReady = true;
                     refreshContent();
                 }
             });
@@ -240,8 +244,9 @@ public class StepDetailActivity extends AppCompatActivity {
 
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                if(playWhenReady){
-                setAudioManager();}
+                if (playWhenReady) {
+                    setAudioManager();
+                }
             }
 
             @Override
@@ -343,7 +348,7 @@ public class StepDetailActivity extends AppCompatActivity {
     }
 
     private void refreshLandScreenContent() {
-
+        releasePlayer();
         Uri videoUri = Uri.parse(RecipeList.recipes.get(mRecipeId).getSteps().get(mStepId).getVideoURL());
         Uri thumbnailUri = Uri.parse(RecipeList.recipes.get(mRecipeId).getSteps().get(mStepId).getThumbnailURL());
 
