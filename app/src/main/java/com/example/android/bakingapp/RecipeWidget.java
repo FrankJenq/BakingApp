@@ -31,6 +31,7 @@ public class RecipeWidget extends AppWidgetProvider {
                 break;
             case WidgetPreference.YELLOW_CAKE:
                 recipeId = WidgetPreference.YELLOW_CAKE;
+                break;
             case WidgetPreference.CHEESECAKE:
                 recipeId = WidgetPreference.CHEESECAKE;
                 break;
@@ -40,15 +41,12 @@ public class RecipeWidget extends AppWidgetProvider {
         for (int i = 0; i < numberOfWidgets; ++i) {
             RemoteViews remoteViews = updateWidgetListView(context,
                     appWidgetIds[i]);
-
             remoteViews.setTextViewText(R.id.widget_title, RecipeList.recipes.get(recipeId).getName());
-
-            Intent clickIntent = new Intent(context, StepsActivity.class);
-            clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
-            clickIntent.setData(Uri.parse(clickIntent.toUri(Intent.URI_INTENT_SCHEME)));
-            clickIntent.putExtra(RecipeListActivity.RecipeId, recipeId);
+            Intent intent= new Intent(context, StepsActivity.class);
+            intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            intent.putExtra(RecipeListActivity.RecipeId, recipeId);
             PendingIntent clickPI = PendingIntent.getActivity(context, 0,
-                    clickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             remoteViews.setPendingIntentTemplate(R.id.list_view_widget, clickPI);
             appWidgetManager.updateAppWidget(appWidgetIds[i],

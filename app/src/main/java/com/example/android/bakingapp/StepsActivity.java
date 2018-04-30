@@ -1,6 +1,5 @@
 package com.example.android.bakingapp;
 
-import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -79,7 +78,6 @@ public class StepsActivity extends AppCompatActivity {
 
     // 判断是否为Activity启动时第一次加载内容
     private boolean mIsInitialContent = true;
-    public boolean mShouldStay = false;
 
     private LinearLayout mStepLayout;
     private RecyclerView mIngredientsView;
@@ -125,23 +123,6 @@ public class StepsActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        int itemPosition = getIntent().getIntExtra(StepsActivity.STEP_ID, -1);
-        int widgetId = getIntent().getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-        //判断是否是从Widget启动的Activity
-        if (itemPosition >= 0 && widgetId > AppWidgetManager.INVALID_APPWIDGET_ID && !mShouldStay) {
-            mShouldStay = true;
-            Intent intent;
-            if (itemPosition == 0) {
-                intent = new Intent(StepsActivity.this, IngredientsActivity.class);
-                intent.putExtra(RecipeListActivity.RecipeId, mRecipeId);
-                startActivity(intent);
-            } else {
-                intent = new Intent(StepsActivity.this, StepDetailActivity.class);
-                intent.putExtra(RecipeListActivity.RecipeId, mRecipeId);
-                intent.putExtra(STEP_ID, itemPosition - 1);
-                startActivity(intent);
-            }
-        }
         if (!mIsPadScreen) {
             return;
         }

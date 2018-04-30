@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/recipe_margin"
         android:layout_weight="1"
-        android:gravity="right" />
+        android:gravity="right"
+        android:textColor="@android:color/white"/>
 
 </LinearLayout>
