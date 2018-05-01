@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.android.bakingapp.data.RecipeList;
+import com.example.android.bakingapp.utils.NetworkUtils;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -167,6 +168,8 @@ public class StepDetailActivity extends AppCompatActivity {
             outState.putBoolean(PLAY_WHEN_READY, mExoPlayer.getPlayWhenReady());
             mIsLandScreen = !mIsLandScreen;
             outState.putBoolean(LAND_SCREEN, mIsLandScreen);
+            mPlayPosition = mExoPlayer.getContentPosition();
+            mPlayWhenReady = mExoPlayer.getPlayWhenReady();
         }
         outState.putInt(RECIPE_ID, mRecipeId);
         outState.putInt(STEP_ID, mStepId);
@@ -348,6 +351,13 @@ public class StepDetailActivity extends AppCompatActivity {
     }
 
     private void refreshLandScreenContent() {
+        if (RecipeList.recipes == null) {
+            if (!NetworkUtils.isHttpsConnectionOk(this)) {
+                Intent intent = new Intent(StepDetailActivity.this,RecipeListActivity.class);
+                startActivity(intent);
+            }
+            new RecipeLoader(this);
+        }
         releasePlayer();
         Uri videoUri = Uri.parse(RecipeList.recipes.get(mRecipeId).getSteps().get(mStepId).getVideoURL());
         Uri thumbnailUri = Uri.parse(RecipeList.recipes.get(mRecipeId).getSteps().get(mStepId).getThumbnailURL());

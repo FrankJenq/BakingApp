@@ -1,9 +1,7 @@
 package com.example.android.bakingapp;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +18,7 @@ import android.widget.TextView;
 
 import com.example.android.bakingapp.data.RecipeList;
 import com.example.android.bakingapp.data.Step;
+import com.example.android.bakingapp.utils.NetworkUtils;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -127,7 +126,7 @@ public class StepsActivity extends AppCompatActivity {
             return;
         }
         if (mStepId < 0) {
-            initializeIngredientFragment();
+            initializeIngredientsContent();
             mStepLayout.setVisibility(View.GONE);
         } else {
             refreshContent();
@@ -152,6 +151,8 @@ public class StepsActivity extends AppCompatActivity {
             outState.putBoolean(PLAY_WHEN_READY, mExoPlayer.getPlayWhenReady());
             mIsLandScreen = !mIsLandScreen;
             outState.putBoolean(LAND_SCREEN, mIsLandScreen);
+            mPlayPosition = mExoPlayer.getContentPosition();
+            mPlayWhenReady = mExoPlayer.getPlayWhenReady();
         }
         outState.putInt(RECIPE_ID, mRecipeId);
         outState.putInt(STEP_ID, mStepId);
@@ -203,7 +204,7 @@ public class StepsActivity extends AppCompatActivity {
                             mIsInitialContent = false;
                             mStepId = -1;
                             releasePlayer();
-                            initializeIngredientFragment();
+                            initializeIngredientsContent();
                         } else {
                             mPlayPosition = 0;
                             mPlayWhenReady = true;
@@ -375,21 +376,14 @@ public class StepsActivity extends AppCompatActivity {
         }
     }
 
-    private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-    private BecomingNoisyReceiver myNoisyAudioStreamReceiver = new BecomingNoisyReceiver();
-
-
-    private class BecomingNoisyReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
-                // Pause the playback
-                mExoPlayer.setPlayWhenReady(false);
-            }
-        }
-    }
-
     private void refreshContent() {
+        if (RecipeList.recipes == null) {
+            if (!NetworkUtils.isHttpsConnectionOk(this)) {
+                Intent intent = new Intent(StepsActivity.this,RecipeListActivity.class);
+                startActivity(intent);
+            }
+            new RecipeLoader(this);
+        }
         releasePlayer();
         String title;
         if (mStepId > 0) {
@@ -424,7 +418,14 @@ public class StepsActivity extends AppCompatActivity {
         }
     }
 
-    private void initializeIngredientFragment() {
+    private void initializeIngredientsContent() {
+        if (RecipeList.recipes == null) {
+            if (!NetworkUtils.isHttpsConnectionOk(this)) {
+                Intent intent = new Intent(StepsActivity.this,RecipeListActivity.class);
+                startActivity(intent);
+            }
+            new RecipeLoader(this);
+        }
         mPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
         mStepDescriptionView = (TextView) findViewById(R.id.step_description);
 
