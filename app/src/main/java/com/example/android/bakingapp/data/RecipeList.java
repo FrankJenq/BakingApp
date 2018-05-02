@@ -1,7 +1,7 @@
 package com.example.android.bakingapp.data;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class RecipeList {
-    public static List<Recipe> recipes = null;
+    public static ArrayList<Recipe> recipes = new ArrayList<>();
 }

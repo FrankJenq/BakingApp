@@ -12,15 +12,14 @@ import com.example.android.bakingapp.utils.NetworkUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import retrofit2.Call;
 
-public class RecipeLoader extends AsyncTaskLoader<List<Recipe>> {
+public class RecipeLoader extends AsyncTaskLoader<ArrayList<Recipe>> {
 
     private final String RECIPE_URL =
             "https://s3.cn-north-1.amazonaws.com.cn/static-documents/nd801/ProjectResources/Baking/baking-cn.json";
-    Context mContext;
+    private Context mContext;
 
 
     RecipeLoader(Context c) {
@@ -34,21 +33,21 @@ public class RecipeLoader extends AsyncTaskLoader<List<Recipe>> {
     }
 
     @Override
-    public List<Recipe> loadInBackground() {
+    public ArrayList<Recipe> loadInBackground() {
         if (!NetworkUtils.isHttpsConnectionOk(mContext)) {
             return RecipeList.recipes;
         }
         return getRecipes();
     }
 
-    private List<Recipe> getRecipes() {
-            RecipeApiService api = RetroClient.getApiService();
-            Call<ArrayList<Recipe>> recipesCall = api.getRecipesJSON(RECIPE_URL);
-            try {
-                RecipeList.recipes = recipesCall.execute().body();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    private ArrayList<Recipe> getRecipes() {
+        RecipeApiService api = RetroClient.getApiService();
+        Call<ArrayList<Recipe>> recipesCall = api.getRecipesJSON(RECIPE_URL);
+        try {
+            RecipeList.recipes = recipesCall.execute().body();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return RecipeList.recipes;
     }
 }

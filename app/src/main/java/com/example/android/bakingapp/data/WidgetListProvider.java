@@ -22,7 +22,7 @@ public class WidgetListProvider implements RemoteViewsService.RemoteViewsFactory
         this.context = context;
         mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
-        mRecipeId = intent.getIntExtra(RecipeListActivity.RecipeId, 0);
+        mRecipeId = intent.getIntExtra(RecipeListActivity.RECIPE_ID, 0);
         ingredientList = RecipeList.recipes.get(mRecipeId).getIngredients();
     }
 

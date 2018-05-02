@@ -18,7 +18,6 @@ import android.widget.TextView;
 
 import com.example.android.bakingapp.data.RecipeList;
 import com.example.android.bakingapp.data.Step;
-import com.example.android.bakingapp.utils.NetworkUtils;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -47,7 +46,7 @@ import java.util.List;
 /**
  * 用于展示菜谱步骤列表的Acitivity
  */
-public class StepsActivity extends AppCompatActivity {
+public class StepsActivity extends AppCompatActivity{
 
 
     private final String TAG = StepsActivity.class.getSimpleName();
@@ -67,10 +66,10 @@ public class StepsActivity extends AppCompatActivity {
 
     private final String CURRENT_POSITION = "current_position";
     private final String PLAY_WHEN_READY = "play_when_ready";
-    private final String LAND_SCREEN = "land_screen";
-    private long mPlayPosition = 0;
-    private boolean mPlayWhenReady = true;
-    private boolean mIsLandScreen = false;
+    private final String IS_FROM_STEPS_ACTIVITY = "is_from_steps_activity";
+
+    public long mPlayPosition = 0;
+    public boolean mPlayWhenReady = true;
     private Uri mCurrentUri;
 
     private boolean mIsPadScreen = false;
@@ -84,8 +83,11 @@ public class StepsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mRecipeId = getIntent().getIntExtra(RecipeListActivity.RecipeId, 0);
+        mRecipeId = getIntent().getIntExtra(RecipeListActivity.RECIPE_ID, 0);
         setContentView(R.layout.activity_steps);
+        if (RecipeList.recipes==null||RecipeList.recipes.size()==0){
+            return;
+        }
         setTitle(RecipeList.recipes.get(mRecipeId).getName());
 
         mRecyclerView = (RecyclerView) findViewById(R.id.steps_recycler_view);
@@ -97,7 +99,7 @@ public class StepsActivity extends AppCompatActivity {
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // 平板模式下设置的fragment
+        // 平板模式下的设置
         if (findViewById(R.id.ingredients_recycler_view) != null) {
             mIsPadScreen = true;
             // 设置AudioManager
@@ -122,6 +124,19 @@ public class StepsActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        // 如果菜谱数据为空，则返回主Activity重新加载数据，然后再恢复现有的状态
+        if (RecipeList.recipes==null||RecipeList.recipes.size()==0){
+            Intent intent = new Intent(StepsActivity.this,RecipeListActivity.class);
+            intent.putExtra(PLAY_WHEN_READY,mPlayWhenReady);
+            intent.putExtra(CURRENT_POSITION,mPlayPosition);
+            intent.putExtra(RECIPE_ID,mRecipeId);
+            intent.putExtra(IS_FROM_STEPS_ACTIVITY,true);
+            startActivity(intent);
+            return;
+        }
+
+
         if (!mIsPadScreen) {
             return;
         }
@@ -149,8 +164,6 @@ public class StepsActivity extends AppCompatActivity {
         if (mCurrentUri != null) {
             outState.putLong(CURRENT_POSITION, mExoPlayer.getCurrentPosition());
             outState.putBoolean(PLAY_WHEN_READY, mExoPlayer.getPlayWhenReady());
-            mIsLandScreen = !mIsLandScreen;
-            outState.putBoolean(LAND_SCREEN, mIsLandScreen);
             mPlayPosition = mExoPlayer.getContentPosition();
             mPlayWhenReady = mExoPlayer.getPlayWhenReady();
         }
@@ -217,11 +230,11 @@ public class StepsActivity extends AppCompatActivity {
                     } else {
                         if (itemPosition == 0) {
                             Intent intent = new Intent(StepsActivity.this, IngredientsActivity.class);
-                            intent.putExtra(RecipeListActivity.RecipeId, mRecipeId);
+                            intent.putExtra(RecipeListActivity.RECIPE_ID, mRecipeId);
                             startActivity(intent);
                         } else {
                             Intent intent = new Intent(StepsActivity.this, StepDetailActivity.class);
-                            intent.putExtra(RecipeListActivity.RecipeId, mRecipeId);
+                            intent.putExtra(RecipeListActivity.RECIPE_ID, mRecipeId);
                             intent.putExtra(STEP_ID, itemPosition - 1);
                             startActivity(intent);
                         }
@@ -377,13 +390,6 @@ public class StepsActivity extends AppCompatActivity {
     }
 
     private void refreshContent() {
-        if (RecipeList.recipes == null) {
-            if (!NetworkUtils.isHttpsConnectionOk(this)) {
-                Intent intent = new Intent(StepsActivity.this,RecipeListActivity.class);
-                startActivity(intent);
-            }
-            new RecipeLoader(this);
-        }
         releasePlayer();
         String title;
         if (mStepId > 0) {
@@ -419,13 +425,7 @@ public class StepsActivity extends AppCompatActivity {
     }
 
     private void initializeIngredientsContent() {
-        if (RecipeList.recipes == null) {
-            if (!NetworkUtils.isHttpsConnectionOk(this)) {
-                Intent intent = new Intent(StepsActivity.this,RecipeListActivity.class);
-                startActivity(intent);
-            }
-            new RecipeLoader(this);
-        }
+        releasePlayer();
         mPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
         mStepDescriptionView = (TextView) findViewById(R.id.step_description);
 

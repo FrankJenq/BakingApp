@@ -15,7 +15,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.android.bakingapp.data.RecipeList;
-import com.example.android.bakingapp.utils.NetworkUtils;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -64,30 +63,40 @@ public class StepDetailActivity extends AppCompatActivity {
     private final String CURRENT_POSITION = "current_position";
     private final String PLAY_WHEN_READY = "play_when_ready";
     private final String LAND_SCREEN = "land_screen";
+    private final String RECIPE_ARRAYLIST = "recipe_arraylist";
     private long mPlayPosition = 0;
     private boolean mPlayWhenReady = true;
     private boolean mIsLandScreen = false;
 
     // 判断是否为Activity启动时第一次加载内容
     private boolean mIsInitialContent = true;
+    private final String IS_FROM_STEPS_DETAIL_ACTIVITY = "is_from_steps_detail_activity";
+
+    private final String SHOULD_RELOAD = "should_reload";
+    private static boolean mShouldReload = true;
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_step_detail);
+
+        //判断是恢复了这个Activity的原状态，还是从其他位置跳转而来
         if (savedInstanceState != null && savedInstanceState.containsKey(RECIPE_ID)) {
             mRecipeId = savedInstanceState.getInt(RECIPE_ID);
             mStepId = savedInstanceState.getInt(STEP_ID);
-
             if (savedInstanceState.containsKey(PLAY_WHEN_READY)) {
                 mPlayWhenReady = savedInstanceState.getBoolean(PLAY_WHEN_READY);
                 mPlayPosition = savedInstanceState.getLong(CURRENT_POSITION);
             }
         }
 
+        // 从其他位置跳转而来，则从Intent中获取特征值
         if (mRecipeId < 0 || mStepId < 0) {
-            mRecipeId = getIntent().getIntExtra(RecipeListActivity.RecipeId, 0);
+            mRecipeId = getIntent().getIntExtra(RecipeListActivity.RECIPE_ID, 0);
             mStepId = getIntent().getIntExtra(StepsActivity.STEP_ID, 0);
+            mPlayWhenReady = getIntent().getBooleanExtra(PLAY_WHEN_READY, true);
+            mPlayPosition = getIntent().getLongExtra(CURRENT_POSITION, 0);
+
         }
 
         // 无论是横屏还是竖屏模式都要设置AudioManager
@@ -96,6 +105,7 @@ public class StepDetailActivity extends AppCompatActivity {
         setAudioManager();
 
         // 根据有无按钮可以判断是否为横屏模式
+        // 有button说明是竖屏模式
         if (findViewById(R.id.pre_button) != null) {
             mIsLandScreen = false;
 
@@ -124,7 +134,9 @@ public class StepDetailActivity extends AppCompatActivity {
                     refreshContent();
                 }
             });
-        } else {
+        }
+        //横屏模式
+        else {
             getSupportActionBar().hide();
             mIsLandScreen = true;
             mPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
@@ -143,6 +155,19 @@ public class StepDetailActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        // 如果菜谱数据为空，则返回主Activity重新加载数据，然后再恢复现有的状态
+        if (RecipeList.recipes == null || RecipeList.recipes.size() == 0) {
+            Intent intent = new Intent(StepDetailActivity.this, RecipeListActivity.class);
+            intent.putExtra(PLAY_WHEN_READY, mPlayWhenReady);
+            intent.putExtra(CURRENT_POSITION, mPlayPosition);
+            intent.putExtra(RECIPE_ID, mRecipeId);
+            intent.putExtra(STEP_ID, mStepId);
+            intent.putExtra(IS_FROM_STEPS_DETAIL_ACTIVITY, true);
+            startActivity(intent);
+            return;
+        }
+
         if (!mIsLandScreen) {
             refreshContent();
         } else {
@@ -223,6 +248,7 @@ public class StepDetailActivity extends AppCompatActivity {
 
         // Produces Extractor instances for parsing the media data.
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+
 
         MediaSource videoSource = new ExtractorMediaSource(mediaUri,
                 dataSourceFactory, extractorsFactory, null, null);
@@ -351,17 +377,10 @@ public class StepDetailActivity extends AppCompatActivity {
     }
 
     private void refreshLandScreenContent() {
-        if (RecipeList.recipes == null) {
-            if (!NetworkUtils.isHttpsConnectionOk(this)) {
-                Intent intent = new Intent(StepDetailActivity.this,RecipeListActivity.class);
-                startActivity(intent);
-            }
-            new RecipeLoader(this);
-        }
         releasePlayer();
+
         Uri videoUri = Uri.parse(RecipeList.recipes.get(mRecipeId).getSteps().get(mStepId).getVideoURL());
         Uri thumbnailUri = Uri.parse(RecipeList.recipes.get(mRecipeId).getSteps().get(mStepId).getThumbnailURL());
-
         // Initialize the mExoPlayer.
         if (videoUri != null && !videoUri.toString().equals("")) {
             mPlayerView.setVisibility(View.VISIBLE);
@@ -380,7 +399,7 @@ public class StepDetailActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 Intent intent = new Intent(StepDetailActivity.this, StepsActivity.class);
-                intent.putExtra(RecipeListActivity.RecipeId, mRecipeId);
+                intent.putExtra(RecipeListActivity.RECIPE_ID, mRecipeId);
                 startActivity(intent);
                 return true;
         }

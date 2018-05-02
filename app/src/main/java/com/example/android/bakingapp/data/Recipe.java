@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class Recipe {
+public class Recipe  {
     @SerializedName("ingredients")
     @Expose
     private List<Ingredient> ingredients;

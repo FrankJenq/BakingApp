@@ -5,22 +5,20 @@ import android.content.Intent;
 import android.content.Loader;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.example.android.bakingapp.data.Recipe;
+import com.example.android.bakingapp.data.RecipeList;
 import com.example.android.bakingapp.utils.NetworkUtils;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class RecipeListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Recipe>> {
+public class RecipeListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Recipe>> {
 
     ListView mRecipeListView;
     RecipeAdapter mRecipeAdapter;
@@ -28,7 +26,14 @@ public class RecipeListActivity extends AppCompatActivity implements LoaderManag
     View noInternetConnectionView;
     ProgressBar progressBar;
     LoaderManager loaderManager;
-    public static final String RecipeId = "recipe_id";
+    public static final String RECIPE_ID = "recipe_id";
+
+    private final String CURRENT_POSITION = "current_position";
+    private final String PLAY_WHEN_READY = "play_when_ready";
+    private final String IS_FROM_STEPS_ACTIVITY = "is_from_steps_activity";
+    private final String IS_FROM_STEPS_DETAIL_ACTIVITY = "is_from_steps_detail_activity";
+    private final String IS_FROM_INGREDIENTS_ACTIVITY= "is_from_ingredients_activity";
+    private final String STEP_ID = "step_id";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,18 +53,19 @@ public class RecipeListActivity extends AppCompatActivity implements LoaderManag
     }
 
     @Override
-    public Loader<List<Recipe>> onCreateLoader(int i, Bundle bundle) {
+    public Loader<ArrayList<Recipe>> onCreateLoader(int i, Bundle bundle) {
         return new RecipeLoader(this);
     }
 
     @Override
-    public void onLoadFinished(Loader<List<Recipe>> loader, List<Recipe> recipes) {
+    public void onLoadFinished(Loader<ArrayList<Recipe>> loader, ArrayList<Recipe> recipes) {
+
         mRecipeAdapter.clear();
         mRecipeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(RecipeListActivity.this, StepsActivity.class);
-                intent.putExtra(RecipeId, (int) id);
+                intent.putExtra(RECIPE_ID, (int) id);
                 startActivity(intent);
             }
         });
@@ -72,10 +78,41 @@ public class RecipeListActivity extends AppCompatActivity implements LoaderManag
         if (recipes != null) {
             mRecipeAdapter.addAll(recipes);
         }
+
+        //如果加载数据前停留在其他位置，那么应该恢复原来的状态
+        if (getIntent().getBooleanExtra(IS_FROM_STEPS_ACTIVITY, false)) {
+            long playPosition = getIntent().getLongExtra(CURRENT_POSITION, 0);
+            boolean playWhenReady = getIntent().getBooleanExtra(PLAY_WHEN_READY, true);
+            int recipeId = getIntent().getIntExtra(RECIPE_ID,0);
+            Intent intent = new Intent(RecipeListActivity.this, StepsActivity.class);
+            intent.putExtra(CURRENT_POSITION, playPosition);
+            intent.putExtra(PLAY_WHEN_READY, playWhenReady);
+            intent.putExtra(RECIPE_ID,recipeId);
+            getIntent().putExtra(IS_FROM_STEPS_ACTIVITY,false);
+            startActivity(intent);
+        } else if (getIntent().getBooleanExtra(IS_FROM_STEPS_DETAIL_ACTIVITY, false)) {
+            long playPosition = getIntent().getLongExtra(CURRENT_POSITION, 0);
+            boolean playWhenReady = getIntent().getBooleanExtra(PLAY_WHEN_READY, true);
+            int recipeId = getIntent().getIntExtra(RECIPE_ID,0);
+            int stepId = getIntent().getIntExtra(STEP_ID,0);
+            Intent intent = new Intent(RecipeListActivity.this, StepDetailActivity.class);
+            intent.putExtra(CURRENT_POSITION, playPosition);
+            intent.putExtra(PLAY_WHEN_READY, playWhenReady);
+            intent.putExtra(RECIPE_ID,recipeId);
+            intent.putExtra(STEP_ID,stepId);
+            getIntent().putExtra(IS_FROM_STEPS_DETAIL_ACTIVITY,false);
+            startActivity(intent);
+        }else if (getIntent().getBooleanExtra(IS_FROM_INGREDIENTS_ACTIVITY,false)){
+            int recipeId = getIntent().getIntExtra(RECIPE_ID,0);
+            Intent intent = new Intent(RecipeListActivity.this, IngredientsActivity.class);
+            intent.putExtra(RECIPE_ID,recipeId);
+            getIntent().putExtra(IS_FROM_INGREDIENTS_ACTIVITY,false);
+            startActivity(intent);
+        }
     }
 
     @Override
-    public void onLoaderReset(Loader<List<Recipe>> loader) {
+    public void onLoaderReset(Loader<ArrayList<Recipe>> loader) {
         mRecipeAdapter.clear();
     }
 
@@ -93,13 +130,14 @@ public class RecipeListActivity extends AppCompatActivity implements LoaderManag
                 startActivity(settingsIntent);
                 return true;
             case R.id.action_refresh:
-                if (!NetworkUtils.isHttpsConnectionOk(this)) {
-                    Toast.makeText(this, R.string.no_network_connection_info, Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                progressBar.setVisibility(View.VISIBLE);
-                loaderManager.destroyLoader(0);
-                loaderManager.initLoader(0, null, this);
+//                if (!NetworkUtils.isHttpsConnectionOk(this)) {
+//                    Toast.makeText(this, R.string.no_network_connection_info, Toast.LENGTH_SHORT).show();
+//                    break;
+//                }
+//                progressBar.setVisibility(View.VISIBLE);
+//                loaderManager.destroyLoader(0);
+//                loaderManager.initLoader(0, null, this);
+                RecipeList.recipes.clear();
                 return true;
         }
         return super.onOptionsItemSelected(item);

@@ -44,7 +44,7 @@ public class RecipeWidget extends AppWidgetProvider {
             remoteViews.setTextViewText(R.id.widget_title, RecipeList.recipes.get(recipeId).getName());
             Intent intent= new Intent(context, StepsActivity.class);
             intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-            intent.putExtra(RecipeListActivity.RecipeId, recipeId);
+            intent.putExtra(RecipeListActivity.RECIPE_ID, recipeId);
             PendingIntent clickPI = PendingIntent.getActivity(context, 0,
                     intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -67,7 +67,7 @@ public class RecipeWidget extends AppWidgetProvider {
         svcIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
 
 
-        svcIntent.putExtra(RecipeListActivity.RecipeId, recipeId);
+        svcIntent.putExtra(RecipeListActivity.RECIPE_ID, recipeId);
         //setting a unique Uri to the intent
         //don't know its purpose to me right now
         svcIntent.setData(Uri.parse(

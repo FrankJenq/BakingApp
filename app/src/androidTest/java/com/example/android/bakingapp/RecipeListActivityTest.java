@@ -52,7 +52,7 @@ public class RecipeListActivityTest {
         //测试点击菜谱之后能否打开对应的步骤列表
         onData(anything()).inAdapterView(withId(R.id.recipe_list)).atPosition(RECIPE_ID).perform(click());
         intended(allOf(
-                hasExtra(RecipeListActivity.RecipeId, RECIPE_ID)));
+                hasExtra(RecipeListActivity.RECIPE_ID, RECIPE_ID)));
 
         // 测试点击菜谱步骤能否打开步骤详情
         onView(withId(R.id.steps_recycler_view))

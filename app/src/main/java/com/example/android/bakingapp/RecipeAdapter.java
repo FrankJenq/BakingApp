@@ -9,11 +9,11 @@ import android.widget.TextView;
 
 import com.example.android.bakingapp.data.Recipe;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class RecipeAdapter extends ArrayAdapter<Recipe> {
 
-    public RecipeAdapter(Context c, List<Recipe> recipes) {
+    public RecipeAdapter(Context c, ArrayList<Recipe> recipes) {
         super(c, 0, recipes);
     }
 

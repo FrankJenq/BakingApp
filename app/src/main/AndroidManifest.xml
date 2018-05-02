@@ -14,7 +14,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".RecipeListActivity"
-            android:label="@string/recipe_act_name">
+            android:label="@string/recipe_act_name"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
