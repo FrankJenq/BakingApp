@@ -9,12 +9,18 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
 
+import com.example.android.bakingapp.data.Ingredient;
+import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.data.RecipeList;
+import com.example.android.bakingapp.data.Step;
+
+import java.util.ArrayList;
 
 public class IngredientsActivity extends AppCompatActivity {
 
+    private static final String TAG = "TAG";
+    private final String NUMBER_OF_RECIPES = "number_of_recipes";
     int mRecipeId;
-    private final String IS_FROM_INGREDIENTS_ACTIVITY= "is_from_ingredients_activity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,8 +29,18 @@ public class IngredientsActivity extends AppCompatActivity {
         mRecipeId = getIntent().getIntExtra(RecipeListActivity.RECIPE_ID, 0);
         setContentView(R.layout.activity_ingredients);
 
-        if (RecipeList.recipes==null||RecipeList.recipes.size()==0){
-            return;
+        //假如RecipeList.recipes为空，则尝试从Bundle中恢复数据
+        if (savedInstanceState != null && savedInstanceState.containsKey(NUMBER_OF_RECIPES)) {
+            if (RecipeList.recipes == null || RecipeList.recipes.size() == 0) {
+                int numberOfRecipes = savedInstanceState.getInt(NUMBER_OF_RECIPES);
+                for (int i = 0; i < numberOfRecipes; i++) {
+                    ArrayList<Ingredient> ingredients = savedInstanceState.getParcelableArrayList(RecipeList.sIngredientsLabel + i);
+                    String name = savedInstanceState.getString(RecipeList.sNamesLabel + i);
+                    ArrayList<Step> steps = savedInstanceState.getParcelableArrayList(RecipeList.sStepsLabel + i);
+                    Recipe recipe = new Recipe(ingredients, name, steps);
+                    RecipeList.recipes.add(recipe);
+                }
+            }
         }
         // 根据菜谱设置标题
         String recipeName = getString(R.string.ingredients_act_label) + " " + RecipeList.recipes.get(mRecipeId).getName();
@@ -42,15 +58,6 @@ public class IngredientsActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-
-        // 如果菜谱数据为空，则返回主Activity重新加载数据，然后再恢复现有的状态
-        if (RecipeList.recipes==null||RecipeList.recipes.size()==0){
-            Intent intent = new Intent(IngredientsActivity.this,RecipeListActivity.class);
-            intent.putExtra(RecipeListActivity.RECIPE_ID,mRecipeId);
-            intent.putExtra(IS_FROM_INGREDIENTS_ACTIVITY,true);
-            startActivity(intent);
-            return;
-        }
     }
 
     @Override
@@ -62,6 +69,12 @@ public class IngredientsActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(RecipeListActivity.RECIPE_ID,mRecipeId);
+        outState.putInt(NUMBER_OF_RECIPES, RecipeList.recipes.size());
+        for (int i = 0; i < RecipeList.recipes.size(); i++) {
+            outState.putParcelableArrayList(RecipeList.sIngredientsLabel + i, RecipeList.recipes.get(i).getIngredients());
+            outState.putString(RecipeList.sNamesLabel + i, RecipeList.recipes.get(i).getName());
+            outState.putParcelableArrayList(RecipeList.sStepsLabel + i, RecipeList.recipes.get(i).getSteps());
+        }
         super.onSaveInstanceState(outState);
     }
 

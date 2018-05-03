@@ -16,6 +16,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.android.bakingapp.data.Ingredient;
+import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.data.RecipeList;
 import com.example.android.bakingapp.data.Step;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -41,12 +43,13 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 用于展示菜谱步骤列表的Acitivity
  */
-public class StepsActivity extends AppCompatActivity{
+public class StepsActivity extends AppCompatActivity {
 
 
     private final String TAG = StepsActivity.class.getSimpleName();
@@ -66,7 +69,6 @@ public class StepsActivity extends AppCompatActivity{
 
     private final String CURRENT_POSITION = "current_position";
     private final String PLAY_WHEN_READY = "play_when_ready";
-    private final String IS_FROM_STEPS_ACTIVITY = "is_from_steps_activity";
 
     public long mPlayPosition = 0;
     public boolean mPlayWhenReady = true;
@@ -77,6 +79,9 @@ public class StepsActivity extends AppCompatActivity{
     // 判断是否为Activity启动时第一次加载内容
     private boolean mIsInitialContent = true;
 
+    private final String NUMBER_OF_RECIPES = "number_of_recipes";
+
+
     private LinearLayout mStepLayout;
     private RecyclerView mIngredientsView;
 
@@ -85,7 +90,22 @@ public class StepsActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         mRecipeId = getIntent().getIntExtra(RecipeListActivity.RECIPE_ID, 0);
         setContentView(R.layout.activity_steps);
-        if (RecipeList.recipes==null||RecipeList.recipes.size()==0){
+
+        //假如RecipeList.recipes为空，则尝试从Bundle中恢复数据
+        if (savedInstanceState != null && savedInstanceState.containsKey(NUMBER_OF_RECIPES)) {
+            if (RecipeList.recipes == null || RecipeList.recipes.size() == 0) {
+                int numberOfRecipes = savedInstanceState.getInt(NUMBER_OF_RECIPES);
+                for (int i = 0; i < numberOfRecipes; i++) {
+                    ArrayList<Ingredient> ingredients = savedInstanceState.getParcelableArrayList(RecipeList.sIngredientsLabel + i);
+                    String name = savedInstanceState.getString(RecipeList.sNamesLabel + i);
+                    ArrayList<Step> steps = savedInstanceState.getParcelableArrayList(RecipeList.sStepsLabel + i);
+                    Recipe recipe = new Recipe(ingredients, name, steps);
+                    RecipeList.recipes.add(recipe);
+                }
+            }
+        }
+
+        if (RecipeList.recipes == null || RecipeList.recipes.size() == 0) {
             return;
         }
         setTitle(RecipeList.recipes.get(mRecipeId).getName());
@@ -124,19 +144,6 @@ public class StepsActivity extends AppCompatActivity{
     @Override
     public void onResume() {
         super.onResume();
-
-        // 如果菜谱数据为空，则返回主Activity重新加载数据，然后再恢复现有的状态
-        if (RecipeList.recipes==null||RecipeList.recipes.size()==0){
-            Intent intent = new Intent(StepsActivity.this,RecipeListActivity.class);
-            intent.putExtra(PLAY_WHEN_READY,mPlayWhenReady);
-            intent.putExtra(CURRENT_POSITION,mPlayPosition);
-            intent.putExtra(RECIPE_ID,mRecipeId);
-            intent.putExtra(IS_FROM_STEPS_ACTIVITY,true);
-            startActivity(intent);
-            return;
-        }
-
-
         if (!mIsPadScreen) {
             return;
         }
@@ -166,6 +173,12 @@ public class StepsActivity extends AppCompatActivity{
             outState.putBoolean(PLAY_WHEN_READY, mExoPlayer.getPlayWhenReady());
             mPlayPosition = mExoPlayer.getContentPosition();
             mPlayWhenReady = mExoPlayer.getPlayWhenReady();
+        }
+        outState.putInt(NUMBER_OF_RECIPES, RecipeList.recipes.size());
+        for (int i = 0; i < RecipeList.recipes.size(); i++) {
+            outState.putParcelableArrayList(RecipeList.sIngredientsLabel + i, RecipeList.recipes.get(i).getIngredients());
+            outState.putString(RecipeList.sNamesLabel + i, RecipeList.recipes.get(i).getName());
+            outState.putParcelableArrayList(RecipeList.sStepsLabel + i, RecipeList.recipes.get(i).getSteps());
         }
         outState.putInt(RECIPE_ID, mRecipeId);
         outState.putInt(STEP_ID, mStepId);

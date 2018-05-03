@@ -9,12 +9,16 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.android.bakingapp.data.Ingredient;
+import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.data.RecipeList;
+import com.example.android.bakingapp.data.Step;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -37,6 +41,8 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+
+import java.util.ArrayList;
 
 
 public class StepDetailActivity extends AppCompatActivity {
@@ -63,17 +69,13 @@ public class StepDetailActivity extends AppCompatActivity {
     private final String CURRENT_POSITION = "current_position";
     private final String PLAY_WHEN_READY = "play_when_ready";
     private final String LAND_SCREEN = "land_screen";
-    private final String RECIPE_ARRAYLIST = "recipe_arraylist";
     private long mPlayPosition = 0;
     private boolean mPlayWhenReady = true;
     private boolean mIsLandScreen = false;
 
     // 判断是否为Activity启动时第一次加载内容
     private boolean mIsInitialContent = true;
-    private final String IS_FROM_STEPS_DETAIL_ACTIVITY = "is_from_steps_detail_activity";
-
-    private final String SHOULD_RELOAD = "should_reload";
-    private static boolean mShouldReload = true;
+    private final String NUMBER_OF_RECIPES = "number_of_recipes";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +89,16 @@ public class StepDetailActivity extends AppCompatActivity {
             if (savedInstanceState.containsKey(PLAY_WHEN_READY)) {
                 mPlayWhenReady = savedInstanceState.getBoolean(PLAY_WHEN_READY);
                 mPlayPosition = savedInstanceState.getLong(CURRENT_POSITION);
+            }
+            if (RecipeList.recipes == null || RecipeList.recipes.size() == 0) {
+                int numberOfRecipes = savedInstanceState.getInt(NUMBER_OF_RECIPES);
+                for (int i = 0; i < numberOfRecipes; i++) {
+                    ArrayList<Ingredient> ingredients = savedInstanceState.getParcelableArrayList(RecipeList.sIngredientsLabel+i);
+                    String name = savedInstanceState.getString(RecipeList.sNamesLabel+i);
+                    ArrayList<Step> steps = savedInstanceState.getParcelableArrayList(RecipeList.sStepsLabel+i);
+                    Recipe recipe = new Recipe(ingredients,name,steps);
+                    RecipeList.recipes.add(recipe);
+                }
             }
         }
 
@@ -156,18 +168,6 @@ public class StepDetailActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        // 如果菜谱数据为空，则返回主Activity重新加载数据，然后再恢复现有的状态
-        if (RecipeList.recipes == null || RecipeList.recipes.size() == 0) {
-            Intent intent = new Intent(StepDetailActivity.this, RecipeListActivity.class);
-            intent.putExtra(PLAY_WHEN_READY, mPlayWhenReady);
-            intent.putExtra(CURRENT_POSITION, mPlayPosition);
-            intent.putExtra(RECIPE_ID, mRecipeId);
-            intent.putExtra(STEP_ID, mStepId);
-            intent.putExtra(IS_FROM_STEPS_DETAIL_ACTIVITY, true);
-            startActivity(intent);
-            return;
-        }
-
         if (!mIsLandScreen) {
             refreshContent();
         } else {
@@ -191,13 +191,17 @@ public class StepDetailActivity extends AppCompatActivity {
         if (mCurrentUri != null) {
             outState.putLong(CURRENT_POSITION, mExoPlayer.getCurrentPosition());
             outState.putBoolean(PLAY_WHEN_READY, mExoPlayer.getPlayWhenReady());
-            mIsLandScreen = !mIsLandScreen;
-            outState.putBoolean(LAND_SCREEN, mIsLandScreen);
             mPlayPosition = mExoPlayer.getContentPosition();
             mPlayWhenReady = mExoPlayer.getPlayWhenReady();
         }
         outState.putInt(RECIPE_ID, mRecipeId);
         outState.putInt(STEP_ID, mStepId);
+        outState.putInt(NUMBER_OF_RECIPES, RecipeList.recipes.size());
+        for (int i = 0; i < RecipeList.recipes.size(); i++) {
+            outState.putParcelableArrayList(RecipeList.sIngredientsLabel + i, RecipeList.recipes.get(i).getIngredients());
+            outState.putString(RecipeList.sNamesLabel + i, RecipeList.recipes.get(i).getName());
+            outState.putParcelableArrayList(RecipeList.sStepsLabel + i, RecipeList.recipes.get(i).getSteps());
+        }
         super.onSaveInstanceState(outState);
     }
 

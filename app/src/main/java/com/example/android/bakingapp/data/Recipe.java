@@ -4,90 +4,49 @@ package com.example.android.bakingapp.data;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
+import java.util.ArrayList;
 
-public class Recipe  {
+public class Recipe {
+
     @SerializedName("ingredients")
     @Expose
-    private List<Ingredient> ingredients;
-
-    @SerializedName("id")
-    @Expose
-    private String id;
-
-    @SerializedName("servings")
-    @Expose
-    private String servings;
+    private ArrayList<Ingredient> ingredients;
 
     @SerializedName("name")
     @Expose
     private String name;
 
-    @SerializedName("image")
-    @Expose
-    private String image;
-
     @SerializedName("steps")
     @Expose
-    private List<Step> steps;
+    private ArrayList<Step> steps;
 
-    public List<Ingredient> getIngredients ()
-    {
+    public Recipe(ArrayList<Ingredient> ingredients,String name,ArrayList<Step>steps){
+        this.ingredients = ingredients;
+        this.name = name;
+        this.steps = steps;
+    }
+
+    public ArrayList<Ingredient> getIngredients() {
         return ingredients;
     }
 
-    public void setIngredients (List<Ingredient> ingredients)
-    {
+    public void setIngredients(ArrayList<Ingredient> ingredients) {
         this.ingredients = ingredients;
     }
 
-    public String getId ()
-    {
-        return id;
-    }
-
-    public void setId (String id)
-    {
-        this.id = id;
-    }
-
-    public String getServings ()
-    {
-        return servings;
-    }
-
-    public void setServings (String servings)
-    {
-        this.servings = servings;
-    }
-
-    public String getName ()
-    {
+    public String getName() {
         return name;
     }
 
-    public void setName (String name)
-    {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public String getImage ()
-    {
-        return image;
-    }
-
-    public void setImage (String image)
-    {
-        this.image = image;
-    }
-
-    public List<Step> getSteps ()
-    {
+    public ArrayList<Step> getSteps() {
         return steps;
     }
 
-    public void setSteps (List<Step> steps)
-    {
+    public void setSteps(ArrayList<Step> steps) {
         this.steps = steps;
     }
 }
